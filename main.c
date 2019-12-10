@@ -2,71 +2,84 @@
 #include <stdio.h>
 #include "./sprites/SnakeHead/SnakeHead.c"
 #include "./sprites/SnakeBody/SnakeBody.c"
+#include "./backgrounds/Ground/background.c"
+#include "./backgrounds/Ground/Ground.c"
+
+INT8 player[2];
+BYTE jumping;
+UINT8 gravity = -2;
+UINT8 speedY;
+UINT8 floorYPosition = 113;
+
+void performantdelay(UINT8 numloops){
+    UINT8 i;
+    for (i = 0; i < numloops; i++) {
+        wait_vbl_done();
+    }
+}
+
+INT8 wouldhitsurface(UINT8 projectedYPosition) {
+    if (projectedYPosition >= floorYPosition) {
+        return floorYPosition;
+    }
+    return -1;
+}
 
 
-int determineDirection() {
+void jump() {
 
-    switch(joypad()) {
-        case J_LEFT:
-            return 0;
-            break;
-        case J_UP:
-            return 1;
-            break;
-        case J_RIGHT:
-            return 2;
-            break;
-        case J_DOWN:
-            return 4;
-            break;
+    INT8 possibleYSurface;
+
+    if (jumping == 0) {
+        jumping = 1;
+        speedY = 10;
+    }
+
+    speedY = speedY + gravity;
+
+    player[1] = player[1] - speedY;
+    possibleYSurface = wouldhitsurface(player[1]);
+
+    if (possibleYSurface > -1) {
+        jumping = 0;
+        move_sprite(0, player[0], possibleYSurface);
+    } else {
+        move_sprite(0, player[0], player[1]);
     }
 }
 
 
-
 void main() {
-    UINT8 currentSpriteIndex = 0;
 
-    int direction = 0;
-    int xPos = 80;
-    int yPos = 78;
+    player[0] = 10;
+    player[1] = floorYPosition;
 
-    set_sprite_data(0, 8, SnakeHead);   // first sprite, load 8 sprites, from SnakeHead sprite
+    jumping = 0;
+
+    set_bkg_data(0, 3, Ground);
+    set_bkg_tiles(0, 0, 40, 18, background);
+
+    set_sprite_data(0, 1, SnakeBody);   // first sprite, load 8 sprites, from SnakeHead sprite
     set_sprite_tile(0, 0);              // first sprite, first sprite memory bank
-    move_sprite(0, xPos, yPos);             // first sprite, 88 right, 78 down
+    move_sprite(0, player[0], player[1]);             // first sprite, 88 right, 78 down
 
-    set_sprite_data(8, 1, SnakeBody);
-    set_sprite_tile(1, 8);
-    move_sprite(1, 88, 78);
-
-
+    SHOW_BKG;
     SHOW_SPRITES;
+    DISPLAY_ON;
 
     while(1) {
-        if (joypad()) {
-            direction = determineDirection();
-        }
 
-        switch(direction) {
-            case 0:
-                set_sprite_tile(0, 0);
-                xPos -= 8;
-                break;
-            case 1:
-                set_sprite_tile(0, 2);
-                yPos -= 8;
-                break;
-            case 2:
-                set_sprite_tile(0, 4);
-                xPos += 8;
-                break;
-            case 4:
-                set_sprite_tile(0, 6);
-                yPos += 8;
-                break;
-        }
 
-        move_sprite(0, xPos, yPos);
-        delay(200);
+        if (joypad() & J_LEFT) {
+            scroll_bkg(-8, 0);
+        }
+        if (joypad() & J_RIGHT) {
+            scroll_bkg(8, 0);
+        }
+        if (joypad() & J_UP || jumping == 1) {
+            jump();
+        }
+        
+        performantdelay(5);
     }
 }
