@@ -15,11 +15,12 @@
 // use char for byte
 
 unsigned char playerPos[2];
-unsigned int playerTile[2];
+unsigned char playerTile[2];
 char emptyBlock[1] = {0x00};
 unsigned char jumping;
 signed char gravity = 2;
 signed char speedY;
+unsigned int xScroll = 16;
 
 
 
@@ -42,14 +43,12 @@ void performantdelay(unsigned int numloops){
 
 
 unsigned int findBGTile(unsigned int tileX, unsigned int tileY) {
-    unsigned int bgLength = 40;
+    unsigned int bgLength = 26;
     unsigned int bgTile;
 
-    bgTile = (tileY * 40) + tileX;
+    bgTile = (tileY * 26) + tileX + ((xScroll - 16) / 8);
     // printf("%u ", (unsigned int)(tileX));
-    // printf("%u ", (unsigned int)(tileY));
-    // printf("%u ", (unsigned int)(bgTile));
-    // printf("%u ", (unsigned int)(bgTile));
+  
     return bgTile;
 }
 
@@ -60,17 +59,9 @@ unsigned int findBGTile(unsigned int tileX, unsigned int tileY) {
 
 
 
-unsigned int canMove(unsigned int bgTile) {
-    INT8 result;
-
-    if (background[bgTile] == 0x00) {
-        result = 1;
-        // printf("%c", '1');
-    } else {
-        result = 0;
-        // printf("%c ", '0');
-    }
-    return result;
+unsigned char canMove(unsigned int bgTile) {
+    
+    return background[bgTile] == 0x00;
 }
 
 
@@ -80,10 +71,9 @@ unsigned int canMove(unsigned int bgTile) {
 
 
 void findCurrentTile() {
-    unsigned int tileX = (playerPos[0] - 8) / 8;
-    unsigned int tileY = (playerPos[1] - 16) / 8;
-    // printf("x:%u ", (unsigned int)(tileX));
-    // printf("y:%u ", (unsigned int)(tileY));
+    unsigned char tileX = (playerPos[0] - 8) / 8;
+    unsigned char tileY = (playerPos[1] - 16) / 8;
+    
 
     playerTile[0] = tileX;
     playerTile[1] = tileY;
@@ -97,7 +87,7 @@ void findCurrentTile() {
 
 
 void jump() {
-    int i;
+    unsigned char i;
     unsigned int nextTileY;
     unsigned int nextBGTile;
     int newPos = 0;
@@ -150,16 +140,23 @@ void jump() {
 
 
 
-
-
-
-
-
-
-
-
-
-
+void scrollX(signed char value, char dir) {
+    
+    if (dir) {
+        if ((xScroll + value) >= (8 * 26)) {
+            xScroll = 0;
+        } else {
+            xScroll += value;
+        }
+    } else {
+        if ((xScroll - value ) >= (8 * 26)) {
+            xScroll = 8 * 26;
+        } else {
+            xScroll -= value;
+        }
+    }
+   
+}
 
 
 
@@ -172,7 +169,7 @@ void main() {
     jumping = 0;
 
     set_bkg_data(0, 3, Ground);
-    set_bkg_tiles(0, 0, 40, 18, background);
+    set_bkg_tiles(0, 0, 26, 18, background);
 
     set_sprite_data(0, 1, SnakeBody);   // first sprite, load 8 sprites, from SnakeHead sprite
     set_sprite_tile(0, 0);              // first sprite, first sprite memory bank
@@ -186,10 +183,14 @@ void main() {
 
 
         if (joypad() & J_LEFT) {
-            scroll_bkg(-1, 0);
+            
+            scroll_bkg(-4, 0);
+            scrollX(4, 0);
         }
         if (joypad() & J_RIGHT) {
-            scroll_bkg(1, 0);
+            
+            scroll_bkg(4, 0);
+            scrollX(4, 1);
         }
         if (joypad() & J_UP || jumping == 1) {
             jump();
