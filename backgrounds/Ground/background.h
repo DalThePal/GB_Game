@@ -1,6 +1,6 @@
 /*
 
- BACKGROUND-1.H
+ BACKGROUND.H
 
  Map Include File.
 
@@ -24,4 +24,4 @@
 
 extern unsigned char background[];
 
-/* End of BACKGROUND-1.H */
+/* End of BACKGROUND.H */

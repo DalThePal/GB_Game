@@ -3,56 +3,171 @@
 #include "./sprites/SnakeHead/SnakeHead.c"
 #include "./sprites/SnakeBody/SnakeBody.c"
 #include "./backgrounds/Ground/background.c"
+#include "./backgrounds/Ground/backgroundTwo.c"
 #include "./backgrounds/Ground/Ground.c"
 
-INT8 player[2];
-BYTE jumping;
-UINT8 gravity = -2;
-UINT8 speedY;
-UINT8 floorYPosition = 113;
 
-void performantdelay(UINT8 numloops){
-    UINT8 i;
+
+// char = 8bits
+// int = 16bits
+// long = 32bits
+// probably never use long
+// use char for byte
+
+unsigned char playerPos[2];
+unsigned int playerTile[2];
+char emptyBlock[1] = {0x00};
+unsigned char jumping;
+signed char gravity = 2;
+signed char speedY;
+
+
+
+
+
+
+void performantdelay(unsigned int numloops){
+    unsigned int i;
     for (i = 0; i < numloops; i++) {
         wait_vbl_done();
     }
 }
 
-INT8 wouldhitsurface(UINT8 projectedYPosition) {
-    if (projectedYPosition >= floorYPosition) {
-        return floorYPosition;
-    }
-    return -1;
+
+
+
+
+
+
+
+
+unsigned int findBGTile(unsigned int tileX, unsigned int tileY) {
+    unsigned int bgLength = 40;
+    unsigned int bgTile;
+
+    bgTile = (tileY * 40) + tileX;
+    // printf("%u ", (unsigned int)(tileX));
+    // printf("%u ", (unsigned int)(tileY));
+    // printf("%u ", (unsigned int)(bgTile));
+    // printf("%u ", (unsigned int)(bgTile));
+    return bgTile;
 }
+
+
+
+
+
+
+
+
+unsigned int canMove(unsigned int bgTile) {
+    INT8 result;
+
+    if (background[bgTile] == 0x00) {
+        result = 1;
+        // printf("%c", '1');
+    } else {
+        result = 0;
+        // printf("%c ", '0');
+    }
+    return result;
+}
+
+
+
+
+
+
+
+void findCurrentTile() {
+    unsigned int tileX = (playerPos[0] - 8) / 8;
+    unsigned int tileY = (playerPos[1] - 16) / 8;
+    // printf("x:%u ", (unsigned int)(tileX));
+    // printf("y:%u ", (unsigned int)(tileY));
+
+    playerTile[0] = tileX;
+    playerTile[1] = tileY;
+
+}
+
+
+
+
+
 
 
 void jump() {
-
-    INT8 possibleYSurface;
+    int i;
+    unsigned int nextTileY;
+    unsigned int nextBGTile;
+    int newPos = 0;
 
     if (jumping == 0) {
-        jumping = 1;
-        speedY = 10;
+        jumping = 1; // set jumping to true to continue loop
+        speedY = 10; // reset speed to 10
     }
 
-    speedY = speedY + gravity;
+    speedY = speedY - gravity;
+    // printf("g:%u ", (INT16)(gravity));
+    // printf("s:%d ", speedY);
 
-    player[1] = player[1] - speedY;
-    possibleYSurface = wouldhitsurface(player[1]);
+    if (speedY <= 0) {
+        for (i = 0; i <= (speedY / -8); i += 1) {
+            // printf("i:%d", i);
+            // printf("loop:%d", (speedY / -8));
+            // printf("pt:%u ", (INT16)(playerTile[1]));
+            nextTileY = playerTile[1] + i + 2;
+            nextBGTile = findBGTile(1, nextTileY);
+            if (canMove(nextBGTile) == 0) {
+                newPos = (nextTileY * 8) + 8;
+                jumping = 0;
+                playerTile[1] = nextTileY - 1;
 
-    if (possibleYSurface > -1) {
-        jumping = 0;
-        move_sprite(0, player[0], possibleYSurface);
+                break;
+            } 
+
+        }
+        if (newPos) {
+
+            playerPos[1] = newPos;
+        } else {
+            playerPos[1] = playerPos[1] - speedY;
+        }
+        // printf("x:%u ", (unsigned int)(playerPos[1]));
+
     } else {
-        move_sprite(0, player[0], player[1]);
+
+        playerPos[1] = playerPos[1] - speedY;
     }
+
+    
+    // printf("x:%u ", (unsigned int)(playerPos[1]));
+
+    findCurrentTile();
+
 }
 
 
-void main() {
 
-    player[0] = 10;
-    player[1] = floorYPosition;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void main() {
+    playerPos[0] = 16;
+    playerPos[1] = 144;
+    findCurrentTile();
 
     jumping = 0;
 
@@ -61,7 +176,7 @@ void main() {
 
     set_sprite_data(0, 1, SnakeBody);   // first sprite, load 8 sprites, from SnakeHead sprite
     set_sprite_tile(0, 0);              // first sprite, first sprite memory bank
-    move_sprite(0, player[0], player[1]);             // first sprite, 88 right, 78 down
+    move_sprite(0, playerPos[0], playerPos[1]);             // first sprite, 88 right, 78 down
 
     SHOW_BKG;
     SHOW_SPRITES;
@@ -71,13 +186,14 @@ void main() {
 
 
         if (joypad() & J_LEFT) {
-            scroll_bkg(-8, 0);
+            scroll_bkg(-1, 0);
         }
         if (joypad() & J_RIGHT) {
-            scroll_bkg(8, 0);
+            scroll_bkg(1, 0);
         }
         if (joypad() & J_UP || jumping == 1) {
             jump();
+            move_sprite(0, playerPos[0], playerPos[1]);
         }
         
         performantdelay(5);

@@ -1,6 +1,6 @@
 /*
 
- BACKGROUND-1.H
+ BACKGROUNDTWO.H
 
  Map Include File.
 
@@ -18,10 +18,10 @@
 
 */
 
-#define background-1Width 40
-#define background-1Height 18
-#define background-1Bank 0
+#define backgroundTwoWidth 40
+#define backgroundTwoHeight 18
+#define backgroundTwoBank 0
 
-extern unsigned char background-1[];
+extern unsigned char backgroundTwo[];
 
-/* End of BACKGROUND-1.H */
+/* End of BACKGROUNDTWO.H */
