@@ -18,9 +18,12 @@ unsigned char playerPos[2];
 unsigned char playerTile[2];
 char emptyBlock[1] = {0x00};
 unsigned char jumping;
+unsigned char falling;
 signed char gravity = 2;
 signed char speedY;
-unsigned int xScroll = 16;
+signed char xOffset = 8;
+signed char yOffset = 16;
+unsigned int xScroll = 0;
 
 
 
@@ -43,10 +46,10 @@ void performantdelay(unsigned int numloops){
 
 
 unsigned int findBGTile(unsigned int tileX, unsigned int tileY) {
-    unsigned int bgLength = 26;
+    unsigned int bgLength = 32;
     unsigned int bgTile;
 
-    bgTile = (tileY * 26) + tileX + ((xScroll - 16) / 8);
+    bgTile = (tileY * 32) + tileX + ((xScroll) / 8);
     // printf("%u ", (unsigned int)(tileX));
   
     return bgTile;
@@ -71,8 +74,8 @@ unsigned char canMove(unsigned int bgTile) {
 
 
 void findCurrentTile() {
-    unsigned char tileX = (playerPos[0] - 8) / 8;
-    unsigned char tileY = (playerPos[1] - 16) / 8;
+    unsigned char tileX = (playerPos[0] - xOffset) / 8;
+    unsigned char tileY = (playerPos[1] - yOffset) / 8;
     
 
     playerTile[0] = tileX;
@@ -93,8 +96,8 @@ void jump() {
     int newPos = 0;
 
     if (jumping == 0) {
-        jumping = 1; // set jumping to true to continue loop
         speedY = 10; // reset speed to 10
+        jumping = 1; // set jumping to true to continue loop
     }
 
     speedY = speedY - gravity;
@@ -111,7 +114,6 @@ void jump() {
             if (canMove(nextBGTile) == 0) {
                 newPos = (nextTileY * 8) + 8;
                 jumping = 0;
-                playerTile[1] = nextTileY - 1;
 
                 break;
             } 
@@ -138,19 +140,64 @@ void jump() {
 }
 
 
+void fall() {
+    unsigned char i;
+    unsigned int nextTileY;
+    unsigned int nextBGTile;
+    int newPos = 0;
+
+    if (falling == 0) {    
+        speedY = 2; // reset speed to 10
+        falling = 1; // set jumping to true to continue loop
+    }
+
+    speedY -= gravity;
+    // printf("g:%d ", (INT16)(gravity));
+    // printf("s:%d ", (INT16)(speedY));
+
+    
+    for (i = 0; i <= (speedY / -8); i++) {
+        // printf("i:%d", i);
+        // printf("loop:%d", (speedY / -8));
+        nextTileY = playerTile[1] + i + 1;
+        nextBGTile = findBGTile(1, nextTileY);
+        if (canMove(nextBGTile) == 0) {
+            newPos = (nextTileY * 8) + 8;
+            // printf("s:%d ", nextTileY);
+            falling = 0;
+            // playerTile[1] = nextTileY - 1;
+            // printf("pt:%u ", (INT16)(playerTile[1]));
+            // printf("xs:%u ", (INT16)(xScroll));
+            // printf("xs:%u ", (INT16)(nextBGTile));
+
+            break;
+        } 
+    }
+    if (newPos) {
+        playerPos[1] = newPos;
+    } else {
+        playerPos[1] = playerPos[1] - speedY;
+    }
+
+    move_sprite(0, playerPos[0], playerPos[1]);
+    findCurrentTile();
+
+}
+
+
 
 
 void scrollX(signed char value, char dir) {
     
     if (dir) {
-        if ((xScroll + value) >= (8 * 26)) {
+        if ((xScroll + value) >= (8 * 32)) {
             xScroll = 0;
         } else {
             xScroll += value;
         }
     } else {
-        if ((xScroll - value ) >= (8 * 26)) {
-            xScroll = 8 * 26;
+        if ((xScroll - value ) >= (8 * 32)) {
+            xScroll = 8 * 32;
         } else {
             xScroll -= value;
         }
@@ -169,7 +216,7 @@ void main() {
     jumping = 0;
 
     set_bkg_data(0, 3, Ground);
-    set_bkg_tiles(0, 0, 26, 18, background);
+    set_bkg_tiles(0, 0, 32, 18, background);
 
     set_sprite_data(0, 1, SnakeBody);   // first sprite, load 8 sprites, from SnakeHead sprite
     set_sprite_tile(0, 0);              // first sprite, first sprite memory bank
@@ -182,18 +229,32 @@ void main() {
     while(1) {
 
 
+        if (falling && !jumping) {
+            fall();
+        }
+        
         if (joypad() & J_LEFT) {
             
             scroll_bkg(-4, 0);
             scrollX(4, 0);
+            if (!falling && !jumping) {
+                fall();
+            }
+            move_sprite(0, playerPos[0], playerPos[1]);
+
         }
         if (joypad() & J_RIGHT) {
             
             scroll_bkg(4, 0);
             scrollX(4, 1);
+            if (!falling && !jumping) {
+                fall();
+            }
+
         }
-        if (joypad() & J_UP || jumping == 1) {
-            jump();
+        if (joypad() & J_UP || jumping) {
+                jump();
+            
             move_sprite(0, playerPos[0], playerPos[1]);
         }
         

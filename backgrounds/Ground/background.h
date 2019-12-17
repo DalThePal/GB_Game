@@ -7,7 +7,7 @@
  Info:
    Section       : 
    Bank          : 0
-   Map size      : 26 x 18
+   Map size      : 32 x 18
    Tile set      : C:\Users\dalle\Desktop\GB_Snake\backgrounds\Ground\Ground.gbr
    Plane count   : 1 plane (8 bits)
    Plane order   : Tiles are continues
@@ -18,7 +18,7 @@
 
 */
 
-#define backgroundWidth 26
+#define backgroundWidth 32
 #define backgroundHeight 18
 #define backgroundBank 0
 
