@@ -62,9 +62,32 @@ unsigned int findBGTile(unsigned int tileX, unsigned int tileY) {
 
 
 
+// unsigned char canMove(unsigned int bgTile) {
+//     unsigned char inBetween = (xScroll * 10) / 8;
+
+//     if (inBetween > 0 && inBetween < 10) {
+//         if (background[bgTile] == 0x00 || background[bgTile + 1] == 0x00) {
+//             return 1;
+//         } else {
+//             return 0;
+//         }
+//     } else {
+//         if (background[bgTile] = 0x00) {
+//             return 1;
+//         } else {
+//             return 0;
+//         }
+//     }
+// }
+
 unsigned char canMove(unsigned int bgTile) {
+
+    if (background[bgTile] = 0x00) {
+        return 1;
+    } else {
+        return 0;
+    }
     
-    return background[bgTile] == 0x00;
 }
 
 
@@ -111,7 +134,7 @@ void jump() {
             // printf("pt:%u ", (INT16)(playerTile[1]));
             nextTileY = playerTile[1] + i + 2;
             nextBGTile = findBGTile(1, nextTileY);
-            if (canMove(nextBGTile) == 0) {
+            if (!canMove(nextBGTile)) {
                 newPos = (nextTileY * 8) + 8;
                 jumping = 0;
 
