@@ -62,35 +62,41 @@ unsigned int findBGTile(unsigned int tileX, unsigned int tileY) {
 
 
 
-// unsigned char canMove(unsigned int bgTile) {
-//     unsigned char inBetween = (xScroll * 10) / 8;
+unsigned char canLand(unsigned int bgTile) {
+    unsigned char inBetween = xScroll % 8;
 
-//     if (inBetween > 0 && inBetween < 10) {
-//         if (background[bgTile] == 0x00 || background[bgTile + 1] == 0x00) {
-//             return 1;
-//         } else {
-//             return 0;
-//         }
-//     } else {
-//         if (background[bgTile] = 0x00) {
-//             return 1;
-//         } else {
-//             return 0;
-//         }
-//     }
-// }
-
-unsigned char canMove(unsigned int bgTile) {
-
-    if (background[bgTile] = 0x00) {
-        return 1;
+    if (inBetween) {
+        if (background[bgTile] != 0x00 || background[bgTile + 1] != 0x00) {
+            return 1;
+        } else {
+            return 0;
+        }
     } else {
-        return 0;
+        if (background[bgTile] == 0x00) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
-    
 }
 
+unsigned char canFall(unsigned int bgTile) {
+    unsigned char inBetween = xScroll % 8;
 
+    if (inBetween) {
+        if (background[bgTile] == 0x00 || background[bgTile + 1] == 0x00) {
+            return 1;
+        } else {
+            return 0;
+        }
+    } else {
+        if (background[bgTile] == 0x00) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+}
 
 
 
@@ -134,7 +140,7 @@ void jump() {
             // printf("pt:%u ", (INT16)(playerTile[1]));
             nextTileY = playerTile[1] + i + 2;
             nextBGTile = findBGTile(1, nextTileY);
-            if (!canMove(nextBGTile)) {
+            if (canLand(nextBGTile)) {
                 newPos = (nextTileY * 8) + 8;
                 jumping = 0;
                 playerTile[1] = nextTileY - 1;
@@ -163,6 +169,8 @@ void jump() {
 
 }
 
+
+
 void fall() {
     unsigned char i;
     unsigned int nextTileY;
@@ -184,7 +192,7 @@ void fall() {
         // printf("loop:%d", (speedY / -8));
         nextTileY = playerTile[1] + i + 1;
         nextBGTile = findBGTile(1, nextTileY);
-        if (canMove(nextBGTile) == 0) {
+        if (canLand(nextBGTile)) {
             newPos = (nextTileY * 8) + 8;
             // printf("s:%d ", nextTileY);
             falling = 0;
@@ -276,9 +284,12 @@ void main() {
 
         }
         if (joypad() & J_UP || jumping) {
-                jump();
+            jump();
             
             move_sprite(0, playerPos[0], playerPos[1]);
+        }
+        if (joypad() & J_DOWN) {
+            printf("%u", (signed int)(xScroll));
         }
         
         performantdelay(5);
