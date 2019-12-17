@@ -113,14 +113,14 @@ void findCurrentTile() {
 
 
 void jump() {
-    unsigned char i;
+    int i;
     unsigned int nextTileY;
     unsigned int nextBGTile;
     int newPos = 0;
 
     if (jumping == 0) {
-        speedY = 10; // reset speed to 10
         jumping = 1; // set jumping to true to continue loop
+        speedY = 10; // reset speed to 10
     }
 
     speedY = speedY - gravity;
@@ -137,6 +137,7 @@ void jump() {
             if (!canMove(nextBGTile)) {
                 newPos = (nextTileY * 8) + 8;
                 jumping = 0;
+                playerTile[1] = nextTileY - 1;
 
                 break;
             } 
@@ -161,7 +162,6 @@ void jump() {
     findCurrentTile();
 
 }
-
 
 void fall() {
     unsigned char i;
