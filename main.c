@@ -1,4 +1,5 @@
 #include <gb/gb.h>
+#include <gb/font.h>
 #include <stdio.h>
 #include "./sprites/SnakeHead/SnakeHead.c"
 #include "./sprites/SnakeBody/SnakeBody.c"
@@ -6,7 +7,8 @@
 #include "./backgrounds/Ground/backgroundTwo.c"
 #include "./backgrounds/Ground/Ground.c"
 
-
+// sounds
+#include "./sounds/jump/jump.c"
 
 // char = 8bits
 // int = 16bits
@@ -15,7 +17,7 @@
 // use char for byte
 
 unsigned char playerPos[2];
-unsigned char playerTile[2];
+unsigned char playerTile[2]; 
 char emptyBlock[1] = {0x00};
 unsigned char jumping;
 unsigned char falling;
@@ -36,10 +38,6 @@ void performantdelay(unsigned int numloops){
         wait_vbl_done();
     }
 }
-
-
-
-
 
 
 
@@ -127,6 +125,7 @@ void jump() {
     if (jumping == 0) {
         jumping = 1; // set jumping to true to continue loop
         speedY = 10; // reset speed to 10
+        jumpSound();
     }
 
     speedY = speedY - gravity;
@@ -239,7 +238,14 @@ void scrollX(signed char value, char dir) {
 
 
 
+
 void main() {
+    
+    NR52_REG = 0X80; // turns on sound
+    NR50_REG = 0x77; // sets volume to max
+    NR51_REG = 0xFF; // which channel to use (all of them)
+
+
     playerPos[0] = 16;
     playerPos[1] = 144;
     findCurrentTile();
