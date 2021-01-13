@@ -3,3 +3,7 @@ main.lst
 main.map
 main.o
 main.sym
+main.asm
+main.ihx
+main.noi
+
